@@ -102,6 +102,7 @@ if __name__ == '__main__':
             # Forward pass
             seq = seq.clone().detach().view(-1, window_size, input_size).to(device)
             output = model(seq)
+            print(output)
             loss = criterion(output, label.to(device))
 
             # Backward and optimize
