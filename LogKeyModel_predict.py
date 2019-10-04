@@ -12,7 +12,7 @@ hidden_size = 64
 num_layers = 2
 num_classes = 28
 num_candidates = 9
-model_path = 'model/Adam with batch_size=2048;epoch=300.pt'
+model_path = 'model/Adam_batch_size=2048;epoch=300.pt'
 
 
 def generate(name):

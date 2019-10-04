@@ -5,6 +5,7 @@ from tensorboardX import SummaryWriter
 from torch.utils.data import TensorDataset, DataLoader
 import argparse
 import os
+import pandas as pd
 
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -13,29 +14,49 @@ window_size = 10
 input_size = 1
 hidden_size = 64
 num_layers = 2
-num_classes = 28
+num_classes = 43
 num_epochs = 300
 batch_size = 2048
 model_dir = 'model'
 log = 'Adam_batch_size=' + str(batch_size) + ';epoch=' + str(num_epochs)
 
+# def generate(name):
+#     num_sessions = 0
+#     inputs = []
+#     outputs = []
+#     with open('data/' + name, 'r') as f:
+#         for line in f.readlines():
+#             if num_sessions < 10:
+#                 print(line)
+#             num_sessions += 1
+#             line = tuple(map(lambda n: n - 1, map(int, line.strip().split())))
+#             for i in range(len(line) - window_size):
+#                 if num_sessions < 10:
+#                     print(line[i:i + window_size])
+#                 inputs.append(line[i:i + window_size])
+#                 outputs.append(line[i + window_size])
+#     print('Number of sessions({}): {}'.format(name, num_sessions))
+#     print('Number of seqs({}): {}'.format(name, len(inputs)))
+#     print('Output {}, Input {}'.format(len(outputs), len(inputs)))
+#     print(inputs)
+#     dataset = TensorDataset(torch.tensor(inputs, dtype=torch.float), torch.tensor(outputs))
+#     return dataset
+
 
 def generate(name):
-    num_sessions = 0
     inputs = []
     outputs = []
-    with open('data/' + name, 'r') as f:
-        for line in f.readlines():
-            num_sessions += 1
-            line = tuple(map(lambda n: n - 1, map(int, line.strip().split())))
-            for i in range(len(line) - window_size):
-                inputs.append(line[i:i + window_size])
-                outputs.append(line[i + window_size])
-    print('Number of sessions({}): {}'.format(name, num_sessions))
+    structured = pd.read_csv(
+        'openstack_val_normal_n2_structured.csv')
+
+    for i in range(len(structured["EventId"].values) - window_size):
+        inputs.append(structured["EventId"].values[i:i + window_size])
+        outputs.append(structured["EventId"].values[i + window_size])
     print('Number of seqs({}): {}'.format(name, len(inputs)))
+    print('Output {}, Input {}'.format(len(outputs), len(inputs)))
+    print()
     dataset = TensorDataset(torch.tensor(inputs, dtype=torch.float), torch.tensor(outputs))
     return dataset
-
 
 class Model(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, num_keys):
@@ -92,6 +113,6 @@ if __name__ == '__main__':
         writer.add_scalar('train_loss', train_loss / len(dataloader.dataset), epoch + 1)
     if not os.path.isdir(model_dir):
         os.makedirs(model_dir)
-    torch.save(model.state_dict(), model_dir + '/' + log + '.pt')
+    torch.save(model.state_dict(), model_dir + '/' + log + 'part2.pt')
     writer.close()
     print('Finished Training')
